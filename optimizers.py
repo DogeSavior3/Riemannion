@@ -6,6 +6,7 @@ class SVDRiemannianGDSt(Optimizer):
     def __init__(self, params, lr=1e-2):
         defaults = dict(lr=lr)
         super().__init__(params, defaults)
+        self.last_grad_norm = 0.0
 
     def step(self, closure=None):
         loss = None
@@ -22,6 +23,7 @@ class SVDRiemannianGDSt(Optimizer):
                 X = p.data
 
                 H = grad - X @ (X.T @ grad + grad.T @ X) * 0.5
+                self.last_grad_norm = torch.norm(H, 'fro').item()
                 TxSTgrad = X - lr * H
                 U, _, VT = torch.linalg.svd(TxSTgrad, full_matrices=False)
                 STgrad = U @ VT
@@ -36,6 +38,7 @@ class QRRiemannianGDSt(Optimizer):
     def __init__(self, params, lr=1e-2):
         defaults = dict(lr=lr)
         super().__init__(params, defaults)
+        self.last_grad_norm = 0.0
 
     def step(self, closure=None):
         loss = None
@@ -53,6 +56,7 @@ class QRRiemannianGDSt(Optimizer):
                 X = p.data
 
                 H = grad - X @ (X.T @ grad + grad.T @ X) * 0.5
+                self.last_grad_norm = torch.norm(H, 'fro').item()
                 TxSTgrad = X - lr * H
 
                 U, _ = torch.linalg.qr(TxSTgrad)
