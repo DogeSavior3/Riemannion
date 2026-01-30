@@ -17,11 +17,12 @@ width_in = 6                         # 174mm converted to inches
 height_in = width_in * 0.52              # 60% of width (adjust ratio as needed)
 plt.rcParams["figure.figsize"] = (width_in, height_in)
 
-# 3. FONT CONFIGURATION (No LaTeX)
-plt.rcParams["text.usetex"] = False
+# # 3. FONT CONFIGURATION (No LaTeX)
+# plt.rcParams["text.usetex"] = False
+plt.rcParams["text.usetex"] = True
 plt.rcParams["font.family"] = "serif"
-# Try these font fallbacks in order:
-plt.rcParams["font.serif"] = ["Times New Roman", "DejaVu Serif", "Liberation Serif"]
+# # Try these font fallbacks in order:
+# plt.rcParams["font.serif"] = ["Times New Roman", "DejaVu Serif", "Liberation Serif"]
 
 # 4. LINE QUALITY
 plt.rcParams["lines.linewidth"] = 1.2   # Slightly thicker for vector output
@@ -47,12 +48,13 @@ save_kwargs = {
 
 # Consts
 
-max_iter = 4500
+max_iter = 1500
 lr = 1e-1
 n = 100
 
 def Rayleigh(A, X):
-	return 1/X.shape[1] * torch.trace(X.T @ (A @ X))
+	# return 1/X.shape[1] * torch.trace(X.T @ (A @ X))
+    return torch.trace(X.T @ (A @ X))
 
 k = torch.arange(1, n + 1)
 eigvals = 2 - 2 * torch.cos(torch.pi * k / (n + 1))
@@ -63,7 +65,7 @@ K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag
 for p in [2, 3, 10]:
     rel_errors = {"SVD" : [], "QR" : [], "Polar" : []}
     grad_norms = {"SVD" : [], "QR" : [], "Polar" : []}
-    true_val = torch.mean(eigvals[:p])
+    true_val = torch.sum(eigvals[:p])
 
     Q, _ = torch.linalg.qr(torch.randn(n, p))
 
@@ -116,13 +118,14 @@ for p in [2, 3, 10]:
         rel_errors["Polar"].append(rel_error)
         grad_norms["Polar"].append(grad_norm)
 
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(8, 4))
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(width_in, height_in))
     axes[0].plot(rel_errors["SVD"], label = 'SVD Retraction')
     axes[0].plot(rel_errors["QR"], label = 'QR Retraction')
     axes[0].plot(rel_errors["Polar"], label = 'Polar Retraction')
     axes[0].grid()
     axes[0].set_yscale('log')
     axes[0].set_xlabel('Iteration')
+    axes[0].set_ylabel(r'$\frac{|\lambda - \lambda^*|}{|\lambda^*|}$')
     axes[0].set_title('Relative error')
     axes[1].plot(grad_norms["SVD"], label = 'SVD Retraction')
     axes[1].plot(grad_norms["QR"], label = 'QR Retraction')
@@ -130,6 +133,7 @@ for p in [2, 3, 10]:
     axes[1].grid()
     axes[1].set_yscale('log')
     axes[1].set_xlabel('Iteration')
+    axes[1].set_ylabel(r'$\|G\|_F$')
     axes[1].set_title('Grad norm')
 
     plt.legend()
