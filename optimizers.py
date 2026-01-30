@@ -64,3 +64,38 @@ class QRRiemannianGDSt(Optimizer):
                 p.data.copy_(STgrad)
 
         return loss
+
+class PolarRiemannianGDSt(Optimizer):
+
+    def __init__(self, params, lr=1e-2):
+        defaults = dict(lr=lr)
+        super().__init__(params, defaults)
+        self.last_grad_norm = 0.0
+
+    def step(self, closure=None):
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
+        for group in self.param_groups:
+            lr = group['lr']
+            for p in group['params']:
+                if p.grad is None:
+                    continue
+
+                grad = p.grad.data
+                X = p.data
+
+                H = grad - X @ (X.T @ grad + grad.T @ X) * 0.5
+                self.last_grad_norm = torch.norm(H, 'fro').item()
+                TxSTgrad = X - lr * H
+
+                PolarMatrix = torch.eye(X.shape[1]) + TxSTgrad.T @ TxSTgrad
+                Lambda, V = torch.linalg.eigh(PolarMatrix)
+
+                STgrad = (X + TxSTgrad) @ (V @ torch.diag(1.0/torch.sqrt(Lambda)) @ V.T)
+                
+                p.data.copy_(STgrad)
+
+        return loss
