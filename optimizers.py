@@ -92,7 +92,8 @@ class PolarRiemannianGDSt(Optimizer):
 
                 TxSTgrad = - lr * H
 
-                PolarMatrix = torch.eye(TxSTgrad.shape[1]) + TxSTgrad.T @ TxSTgrad
+                # PolarMatrix = torch.eye(TxSTgrad.shape[1]) + TxSTgrad.T @ TxSTgrad
+                PolarMatrix = (X + TxSTgrad).T @ (X + TxSTgrad)
                 Lambda, V = torch.linalg.eigh(PolarMatrix)
                 Lambda = torch.clamp(Lambda, min=1e-4)
 
