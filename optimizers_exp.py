@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from optimizers import SVDRiemannianGDSt, QRRiemannianGDSt, PolarRiemannianGDSt
 
 torch.manual_seed(42)
+torch.set_default_dtype(torch.float64) 
 device = "cpu"
 
 # 1. EPS-SPECIFIC SETTINGS
@@ -48,13 +49,13 @@ save_kwargs = {
 
 # Consts
 
-max_iter = 1500
+max_iter = 50000
 lr = 1e-1
 n = 100
 
 def Rayleigh(A, X):
-	# return 1/X.shape[1] * torch.trace(X.T @ (A @ X))
-    return torch.trace(X.T @ (A @ X))
+	return 1/X.shape[1] * torch.trace(X.T @ (A @ X))
+    # return torch.trace(X.T @ (A @ X))
 
 k = torch.arange(1, n + 1)
 eigvals = 2 - 2 * torch.cos(torch.pi * k / (n + 1))
@@ -65,7 +66,8 @@ K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag
 for p in [2, 3, 10]:
     rel_errors = {"SVD" : [], "QR" : [], "Polar" : []}
     grad_norms = {"SVD" : [], "QR" : [], "Polar" : []}
-    true_val = torch.sum(eigvals[:p])
+    true_val = torch.mean(eigvals[:p])
+    # true_val = torch.sum(eigvals[:p])
 
     Q, _ = torch.linalg.qr(torch.randn(n, p))
 
@@ -85,6 +87,8 @@ for p in [2, 3, 10]:
         rel_errors["SVD"].append(rel_error)
         grad_norms["SVD"].append(grad_norm)
 
+        if grad_norm < 1e-6:
+            break
 
     X = Q.clone().detach().requires_grad_(True)
     optimizer_QR = QRRiemannianGDSt([X], lr)
@@ -102,6 +106,9 @@ for p in [2, 3, 10]:
         rel_errors["QR"].append(rel_error)
         grad_norms["QR"].append(grad_norm)
 
+        if grad_norm < 1e-6:
+            break
+
     X = Q.clone().detach().requires_grad_(True)
     optimizer_Polar = PolarRiemannianGDSt([X], lr)
 
@@ -117,6 +124,9 @@ for p in [2, 3, 10]:
 
         rel_errors["Polar"].append(rel_error)
         grad_norms["Polar"].append(grad_norm)
+
+        if grad_norm < 1e-6:
+            break
 
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(width_in, height_in))
     axes[0].plot(rel_errors["SVD"], label = 'SVD Retraction')
