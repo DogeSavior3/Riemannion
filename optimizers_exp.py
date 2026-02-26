@@ -57,6 +57,11 @@ n = 100
 def Rayleigh(A, X):
 	return 1/X.shape[1] * torch.trace(X.T @ (A @ X))
 
+def Rayleigh_f(X):
+    n = X.shape[0]
+    K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
+    return Rayleigh(K_n, X)
+
 k = torch.arange(1, n + 1)
 eigvals = 2 - 2 * torch.cos(torch.pi * k / (n + 1))
 K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
