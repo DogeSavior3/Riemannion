@@ -9,21 +9,21 @@ def Rayleigh(A, X):
 n=100
 K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
 
-def Rayleigh_f(X):
+def Rayleigh_armijo(X):
     return Rayleigh(K_n, X)
 
-def Rayleigh_H(X, H):
+def Rayleigh_steppest(X, H):
     return torch.trace(X.T @ (K_n @ H)) / torch.trace(H.T @ (K_n @ H))
 
 def steppest(X, H):
-    return Rayleigh_H(X,H) / Rayleigh_H(H, H)
+    return Rayleigh_steppest(X,H) / Rayleigh_steppest(H, H)
 
 def polar_retraction(H):
     PolarMatrix = H.T @ H
     Lambda, V = torch.linalg.eigh(PolarMatrix)
     return H @ (V @ torch.diag(1.0 / torch.sqrt(Lambda)) @ V.T)
 
-def armijo_line_search(X, H, fX, fn, lr = 1e-1, c = 1e-4, tau = 0.8, max_iter = 50):
+def armijo_line_search(X, H, fX, fn, lr = 5e-1, c = 1e-4, tau = 0.8, max_iter = 50):
 # TODO: Гольштейн
     grad_norm = torch.trace(H.T @ H).item()
     alpha = lr
@@ -39,3 +39,9 @@ def armijo_line_search(X, H, fX, fn, lr = 1e-1, c = 1e-4, tau = 0.8, max_iter = 
         alpha *= tau
 
     return X_new
+
+def newton_schulz_polar(X: torch.Tensor, steps: int = 10) -> torch.Tensor:
+    X = X / (X.norm(dim=(-2, -1), keepdim=True) * 1.01 + 1e-7)
+    for _ in range(steps):
+        X = 1.5 * X - 0.5 * (X @ (X.T @ X))
+    return X
