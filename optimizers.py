@@ -1,6 +1,7 @@
 import torch
 from torch.optim import Optimizer
 from search_engines import polar_retraction, armijo_line_search, steppest
+from polar_express import optimal_composition, PolarExpress
 
 class SVDRiemannianGDSt(Optimizer):
 
@@ -94,11 +95,13 @@ class QRRiemannianGDSt(Optimizer):
 
 class PolarRiemannianGDSt(Optimizer):
 
-    def __init__(self, params, lr=1e-2, momentum=None, line_search="none", object=None):
-        defaults = dict(lr=lr, momentum=momentum, line_search=line_search)
+    def __init__(self, params, lr=1e-2, momentum=None, line_search="none", object=None, steps = 8):
+        defaults = dict(lr=lr, momentum=momentum, line_search=line_search, steps=steps)
         super().__init__(params, defaults)
         self.last_grad_norm = 0.0
         self.func = object
+        if line_search == "PolarExpress":
+            self.coeffs_list = optimal_composition(l=1e-3, num_iters=steps, safety_factor_eps=1e-2)
 
     def step(self, closure=None):
         loss = None
@@ -110,6 +113,7 @@ class PolarRiemannianGDSt(Optimizer):
             lr = group['lr']
             momentum = group['momentum']
             line_search = group['line_search']
+            steps = group['steps']
             for p in group['params']:
                 if p.grad is None:
                     continue
@@ -131,14 +135,19 @@ class PolarRiemannianGDSt(Optimizer):
                 else:
                     TxSTgrad = - H
                     self.last_grad_norm = torch.norm(H, 'fro').item()
-                
+
+
                 if line_search == "armijo":
-                    X_new = armijo_line_search(X, -TxSTgrad, self.func(X), self.func) # add custom retraction
-                    p.data.copy_(X_new)
+                    STgrad = armijo_line_search(X, -TxSTgrad, self.func(X), self.func) # add custom retraction
+                    p.data.copy_(STgrad)
                 elif line_search == "steppest":
                     alpha_opt = steppest(X, H)
                     TxSTgrad *= alpha_opt
                     STgrad = polar_retraction(X + TxSTgrad)
+                    p.data.copy_(STgrad)
+                elif line_search == "PolarExpress":
+                    TxSTgrad *= lr
+                    STgrad = PolarExpress(X + TxSTgrad, steps=steps, coeffs_list=self.coeffs_list)
                     p.data.copy_(STgrad)
                 else:
                     TxSTgrad *= lr
