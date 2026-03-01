@@ -1,6 +1,6 @@
 import torch
 from torch.optim import Optimizer
-from search_engines import polar_retraction, armijo_line_search, steppest
+from search_engines import polar_retraction, armijo_line_search, steppest, newton_schulz_polar
 from polar_express import optimal_composition, PolarExpress
 
 class SVDRiemannianGDSt(Optimizer):
@@ -136,22 +136,22 @@ class PolarRiemannianGDSt(Optimizer):
                     TxSTgrad = - H
                     self.last_grad_norm = torch.norm(H, 'fro').item()
 
-
                 if line_search == "armijo":
                     STgrad = armijo_line_search(X, -TxSTgrad, self.func(X), self.func) # add custom retraction
-                    p.data.copy_(STgrad)
                 elif line_search == "steppest":
                     alpha_opt = steppest(X, H)
                     TxSTgrad *= alpha_opt
                     STgrad = polar_retraction(X + TxSTgrad)
-                    p.data.copy_(STgrad)
                 elif line_search == "PolarExpress":
                     TxSTgrad *= lr
                     STgrad = PolarExpress(X + TxSTgrad, steps=steps, coeffs_list=self.coeffs_list)
-                    p.data.copy_(STgrad)
+                elif line_search == "newton_schulz":
+                    TxSTgrad *= lr
+                    STgrad = newton_schulz_polar(X + TxSTgrad, steps)
                 else:
                     TxSTgrad *= lr
                     STgrad = polar_retraction(X + TxSTgrad)
-                    p.data.copy_(STgrad)
+
+                p.data.copy_(STgrad)
 
         return loss
