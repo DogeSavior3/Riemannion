@@ -2,6 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 from optimizers import SVDRiemannianGDSt, QRRiemannianGDSt, PolarRiemannianGDSt
 from search_engines import Rayleigh
+import time
 
 torch.manual_seed(42)
 torch.set_default_dtype(torch.float64) 
@@ -49,7 +50,6 @@ save_kwargs = {
 }
 
 # Consts
-
 max_iter = 40000
 momentum = 0.9
 n = 100
@@ -64,16 +64,21 @@ true_val = torch.mean(eigvals[:p])
 Q, _ = torch.linalg.qr(torch.randn(n, p))
 
 fig, axes = plt.subplots(nrows=3, ncols=4, figsize=(width_in * 2, height_in * 3))
+
+fig.suptitle(f'Rayleigh Quotient Optimization: $n={n}$, $p={p}$', 
+             fontsize=12, y=0.995, fontweight='bold')
+
 lr = 5e-1
+
 X = Q.clone().detach().requires_grad_(True)
 optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum)
 rel_errors = []
 grad_norms = []
+start_time = time.time()
 for it in range(max_iter):
     optimizer_Polar.zero_grad()
     func = Rayleigh(K_n, X)
     func.backward()
-
     optimizer_Polar.step()
 
     grad_norm = optimizer_Polar.last_grad_norm
@@ -84,14 +89,17 @@ for it in range(max_iter):
 
     if grad_norm < tol:
         break
+elapsed_time = time.time() - start_time
 
-axes[0, 0].plot(rel_errors, label = 'Vanilla Polar Retraction')
+axes[0, 0].plot(rel_errors, label=f'Vanilla Polar ({elapsed_time:.3f}s)')
 axes[0, 0].grid()
 axes[0, 0].set_yscale('log')
 axes[0, 0].set_xlabel('Iteration')
 axes[0, 0].set_ylabel(r'$\frac{|\lambda - \lambda^*|}{|\lambda^*|}$')
 axes[0, 0].set_title('Relative error')
-axes[0, 1].plot(grad_norms, label = 'Vanilla Polar Retraction')
+axes[0, 0].legend()
+
+axes[0, 1].plot(grad_norms, label=f'Vanilla Polar ({elapsed_time:.3f}s)')
 axes[0, 1].grid()
 axes[0, 1].set_yscale('log')
 axes[0, 1].set_xlabel('Iteration')
@@ -99,16 +107,15 @@ axes[0, 1].set_ylabel(r'$\|G\|_F$')
 axes[0, 1].set_title('Grad norm')
 axes[0, 1].legend()
 
-lr = 5e-1
 X = Q.clone().detach().requires_grad_(True)
 optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="steppest")
 rel_errors = []
 grad_norms = []
+start_time = time.time()
 for it in range(max_iter):
     optimizer_Polar.zero_grad()
     func = Rayleigh(K_n, X)
     func.backward()
-
     optimizer_Polar.step()
 
     grad_norm = optimizer_Polar.last_grad_norm
@@ -119,14 +126,17 @@ for it in range(max_iter):
 
     if grad_norm < tol:
         break
+elapsed_time = time.time() - start_time
 
-axes[0, 2].plot(rel_errors, label = 'Steppest Polar Retraction')
+axes[0, 2].plot(rel_errors, label=f'Steppest ({elapsed_time:.3f}s)')
 axes[0, 2].grid()
 axes[0, 2].set_yscale('log')
 axes[0, 2].set_xlabel('Iteration')
 axes[0, 2].set_ylabel(r'$\frac{|\lambda - \lambda^*|}{|\lambda^*|}$')
 axes[0, 2].set_title('Relative error')
-axes[0, 3].plot(grad_norms, label = 'Steppest Polar Retraction')
+axes[0, 2].legend()
+
+axes[0, 3].plot(grad_norms, label=f'Steppest ({elapsed_time:.3f}s)')
 axes[0, 3].grid()
 axes[0, 3].set_yscale('log')
 axes[0, 3].set_xlabel('Iteration')
@@ -134,16 +144,15 @@ axes[0, 3].set_ylabel(r'$\|G\|_F$')
 axes[0, 3].set_title('Grad norm')
 axes[0, 3].legend()
 
-lr = 5e-1
 X = Q.clone().detach().requires_grad_(True)
 optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="armijo")
 rel_errors = []
 grad_norms = []
+start_time = time.time()
 for it in range(max_iter):
     optimizer_Polar.zero_grad()
     func = Rayleigh(K_n, X)
     func.backward()
-
     optimizer_Polar.step()
 
     grad_norm = optimizer_Polar.last_grad_norm
@@ -154,14 +163,17 @@ for it in range(max_iter):
 
     if grad_norm < tol:
         break
+elapsed_time = time.time() - start_time
 
-axes[1, 0].plot(rel_errors, label = 'Armijo Polar Retraction')
+axes[1, 0].plot(rel_errors, label=f'Armijo ({elapsed_time:.3f}s)')
 axes[1, 0].grid()
 axes[1, 0].set_yscale('log')
 axes[1, 0].set_xlabel('Iteration')
 axes[1, 0].set_ylabel(r'$\frac{|\lambda - \lambda^*|}{|\lambda^*|}$')
 axes[1, 0].set_title('Relative error')
-axes[1, 1].plot(grad_norms, label = 'Armijo Polar Retraction')
+axes[1, 0].legend()
+
+axes[1, 1].plot(grad_norms, label=f'Armijo ({elapsed_time:.3f}s)')
 axes[1, 1].grid()
 axes[1, 1].set_yscale('log')
 axes[1, 1].set_xlabel('Iteration')
@@ -169,16 +181,15 @@ axes[1, 1].set_ylabel(r'$\|G\|_F$')
 axes[1, 1].set_title('Grad norm')
 axes[1, 1].legend()
 
-lr = 5e-1
 X = Q.clone().detach().requires_grad_(True)
-optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="newton-shultz")
+optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="newton-shultz", steps=2)
 rel_errors = []
 grad_norms = []
+start_time = time.time()
 for it in range(max_iter):
     optimizer_Polar.zero_grad()
     func = Rayleigh(K_n, X)
     func.backward()
-
     optimizer_Polar.step()
 
     grad_norm = optimizer_Polar.last_grad_norm
@@ -189,14 +200,17 @@ for it in range(max_iter):
 
     if grad_norm < tol:
         break
+elapsed_time = time.time() - start_time
 
-axes[1, 2].plot(rel_errors, label = 'Newton-Shultz Polar Retraction')
+axes[1, 2].plot(rel_errors, label=f'Newton-Shultz ({elapsed_time:.3f}s)')
 axes[1, 2].grid()
 axes[1, 2].set_yscale('log')
 axes[1, 2].set_xlabel('Iteration')
 axes[1, 2].set_ylabel(r'$\frac{|\lambda - \lambda^*|}{|\lambda^*|}$')
 axes[1, 2].set_title('Relative error')
-axes[1, 3].plot(grad_norms, label = 'Newton-Shultz Polar Retraction')
+axes[1, 2].legend()
+
+axes[1, 3].plot(grad_norms, label=f'Newton-Shultz ({elapsed_time:.3f}s)')
 axes[1, 3].grid()
 axes[1, 3].set_yscale('log')
 axes[1, 3].set_xlabel('Iteration')
@@ -204,16 +218,15 @@ axes[1, 3].set_ylabel(r'$\|G\|_F$')
 axes[1, 3].set_title('Grad norm')
 axes[1, 3].legend()
 
-lr = 5e-1
 X = Q.clone().detach().requires_grad_(True)
 optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="PolarExpress")
 rel_errors = []
 grad_norms = []
+start_time = time.time()
 for it in range(max_iter):
     optimizer_Polar.zero_grad()
     func = Rayleigh(K_n, X)
     func.backward()
-
     optimizer_Polar.step()
 
     grad_norm = optimizer_Polar.last_grad_norm
@@ -224,14 +237,17 @@ for it in range(max_iter):
 
     if grad_norm < tol:
         break
+elapsed_time = time.time() - start_time
 
-axes[2, 0].plot(rel_errors, label = 'PolarExpress Polar Retraction')
+axes[2, 0].plot(rel_errors, label=f'PolarExpress ({elapsed_time:.3f}s)')
 axes[2, 0].grid()
 axes[2, 0].set_yscale('log')
 axes[2, 0].set_xlabel('Iteration')
 axes[2, 0].set_ylabel(r'$\frac{|\lambda - \lambda^*|}{|\lambda^*|}$')
 axes[2, 0].set_title('Relative error')
-axes[2, 1].plot(grad_norms, label = 'PolarExpress Polar Retraction')
+axes[2, 0].legend()
+
+axes[2, 1].plot(grad_norms, label=f'PolarExpress ({elapsed_time:.3f}s)')
 axes[2, 1].grid()
 axes[2, 1].set_yscale('log')
 axes[2, 1].set_xlabel('Iteration')
@@ -239,37 +255,15 @@ axes[2, 1].set_ylabel(r'$\|G\|_F$')
 axes[2, 1].set_title('Grad norm')
 axes[2, 1].legend()
 
-# lr = 5e-1
-# X = Q.clone().detach().requires_grad_(True)
-# optimizer_Polar = SVDRiemannianGDSt([X], lr, momentum=momentum)
-# rel_errors = []
-# grad_norms = []
-# for it in range(max_iter):
-#     optimizer_Polar.zero_grad()
-#     func = Rayleigh(K_n, X)
-#     func.backward()
-
-#     optimizer_Polar.step()
-
-#     grad_norm = optimizer_Polar.last_grad_norm
-#     rel_error = abs(func.item() - true_val) / abs(true_val)
-
-#     rel_errors.append(rel_error)
-#     grad_norms.append(grad_norm)
-
-#     if grad_norm < tol:
-#         break
-
-lr = 5e-1
 X = Q.clone().detach().requires_grad_(True)
-optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="CANS")
+optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="CANS", steps=5)
 rel_errors = []
 grad_norms = []
+start_time = time.time()
 for it in range(max_iter):
     optimizer_Polar.zero_grad()
     func = Rayleigh(K_n, X)
     func.backward()
-
     optimizer_Polar.step()
 
     grad_norm = optimizer_Polar.last_grad_norm
@@ -280,14 +274,17 @@ for it in range(max_iter):
 
     if grad_norm < tol:
         break
+elapsed_time = time.time() - start_time
 
-axes[2, 2].plot(rel_errors, label = 'CANS')
+axes[2, 2].plot(rel_errors, label=f'CANS ({elapsed_time:.3f}s)')
 axes[2, 2].grid()
 axes[2, 2].set_yscale('log')
 axes[2, 2].set_xlabel('Iteration')
 axes[2, 2].set_ylabel(r'$\frac{|\lambda - \lambda^*|}{|\lambda^*|}$')
 axes[2, 2].set_title('Relative error')
-axes[2, 3].plot(grad_norms, label = 'CANS')
+axes[2, 2].legend()
+
+axes[2, 3].plot(grad_norms, label=f'CANS ({elapsed_time:.3f}s)')
 axes[2, 3].grid()
 axes[2, 3].set_yscale('log')
 axes[2, 3].set_xlabel('Iteration')
