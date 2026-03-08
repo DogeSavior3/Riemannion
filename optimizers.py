@@ -26,11 +26,12 @@ class SVDRiemannianGDSt(Optimizer):
 
                 grad = p.grad.data
                 X = p.data
+                device = X.device
                 H = grad - X @ (X.T @ grad + grad.T @ X) * 0.5
 
                 if momentum is not None:
                     if 'momentum_buffer' not in self.state[p]:
-                        self.state[p]['momentum_buffer'] = torch.zeros_like(H)
+                        self.state[p]['momentum_buffer'] = torch.zeros_like(H, device=device)
 
                     h = self.state[p]['momentum_buffer']
                     h_new = h - X @ (X.T @ h + h.T @ X) * 0.5
@@ -72,11 +73,12 @@ class QRRiemannianGDSt(Optimizer):
 
                 grad = p.grad.data
                 X = p.data
+                device = X.device
                 H = grad - X @ (X.T @ grad + grad.T @ X) * 0.5
 
                 if momentum is not None:
                     if 'momentum_buffer' not in self.state[p]:
-                        self.state[p]['momentum_buffer'] = torch.zeros_like(H)
+                        self.state[p]['momentum_buffer'] = torch.zeros_like(H, device=device)
 
                     h = self.state[p]['momentum_buffer']
                     h_new = h - X @ (X.T @ h + h.T @ X) * 0.5
@@ -121,11 +123,12 @@ class PolarRiemannianGDSt(Optimizer):
 
                 grad = p.grad.data
                 X = p.data
+                device = X.device
                 H = grad - X @ (X.T @ grad + grad.T @ X) * 0.5
 
                 if momentum is not None:
                     if 'momentum_buffer' not in self.state[p]:
-                        self.state[p]['momentum_buffer'] = torch.zeros_like(H)
+                        self.state[p]['momentum_buffer'] = torch.zeros_like(H, device=device)
 
                     h = self.state[p]['momentum_buffer']
                     h_new = h - X @ (X.T @ h + h.T @ X) * 0.5
