@@ -47,35 +47,37 @@ save_kwargs = {
     "transparent": True  # If you need transparency
 }
 
-# Consts
-
-max_iter = 20000
-lr = 5e-2
-# momentum = 0.9
 n = 100
-
 def Rayleigh(A, X):
 	return 1/X.shape[1] * torch.trace(X.T @ (A @ X))
 
-def Rayleigh_f(X):
-    n = X.shape[0]
-    K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
+K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
+
+def Rayleigh_armijo(X):
     return Rayleigh(K_n, X)
+
+def Rayleigh_steppest(X, H):
+    torch.trace(X.T @ (K_n @ H)) / torch.trace(H.T @ (K_n @ H))
 
 k = torch.arange(1, n + 1)
 eigvals = 2 - 2 * torch.cos(torch.pi * k / (n + 1))
-K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
 
+# Consts
+
+max_iter = 15000
+lr = 5e-1
+momentum = 0.9
+tol = 1e-9
 # exps:
 
-for p in [2]: #[2, 3, 10, 50]:
-    rel_errors = {"SVD" : [], "QR" : [], "Polar" : []}
-    grad_norms = {"SVD" : [], "QR" : [], "Polar" : []}
+for p in [2, 3, 10, 50]:
+    rel_errors = []
+    grad_norms = []
     true_val = torch.mean(eigvals[:p])
 
     Q, _ = torch.linalg.qr(torch.randn(n, p))
     X = Q.clone().detach().requires_grad_(True)
-    optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=None, line_search="armijo", object=Rayleigh_f)
+    optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="CANS", steps=5)
 
     for it in range(max_iter):
         optimizer_Polar.zero_grad()
@@ -87,20 +89,20 @@ for p in [2]: #[2, 3, 10, 50]:
         grad_norm = optimizer_Polar.last_grad_norm
         rel_error = abs(func.item() - true_val) / abs(true_val)
 
-        rel_errors["Polar"].append(rel_error)
-        grad_norms["Polar"].append(grad_norm)
+        rel_errors.append(rel_error)
+        grad_norms.append(grad_norm)
 
-        if grad_norm < 1e-14:
+        if grad_norm < tol:
             break
 
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(width_in, height_in))
-    axes[0].plot(rel_errors["Polar"], label = 'Polar Retraction')
+    axes[0].plot(rel_errors, label = 'Polar Retraction')
     axes[0].grid()
     axes[0].set_yscale('log')
     axes[0].set_xlabel('Iteration')
     axes[0].set_ylabel(r'$\frac{|\lambda - \lambda^*|}{|\lambda^*|}$')
     axes[0].set_title('Relative error')
-    axes[1].plot(grad_norms["Polar"], label = 'Polar Retraction')
+    axes[1].plot(grad_norms, label = 'CANS Retraction')
     axes[1].grid()
     axes[1].set_yscale('log')
     axes[1].set_xlabel('Iteration')
@@ -109,5 +111,4 @@ for p in [2]: #[2, 3, 10, 50]:
 
     plt.legend()
     plt.tight_layout()
-    # plt.savefig(f'p={p}_all.eps', **save_kwargs)
     plt.show()

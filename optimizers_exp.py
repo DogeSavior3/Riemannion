@@ -50,25 +50,31 @@ save_kwargs = {
 # Consts
 
 max_iter = 100000
-lr = 5e-2
+lr_SVD = 5e-2
+lr_QR = 5e-2
+lr_Polar = 5e-2
 momentum = 0.9
-n = 100
+n = 250
+tol = 1e-12
 
-def Rayleigh(A, X):
-	return 1/X.shape[1] * torch.trace(X.T @ (A @ X))
+def Rayleigh(A, X1, X2 = None):
+    if X2 is None:
+        X2 = X1
+    return 1/X1.shape[1] * torch.trace(X1.T @ (A @ X2))
 
-def Rayleigh_f(X):
-    n = X.shape[0]
-    K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
-    return Rayleigh(K_n, X)
+K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
+
+def Rayleigh_f(X1, X2 = None):
+    if X2 is None:
+        return Rayleigh(K_n, X)
+    return Rayleigh(K_n, X1, X2)
 
 k = torch.arange(1, n + 1)
 eigvals = 2 - 2 * torch.cos(torch.pi * k / (n + 1))
-K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
 
 # exps:
 
-for p in [2, 3, 10, 50]:
+for p in [10, 50]:
     rel_errors = {"SVD" : [], "QR" : [], "Polar" : []}
     grad_norms = {"SVD" : [], "QR" : [], "Polar" : []}
     true_val = torch.mean(eigvals[:p])
@@ -76,7 +82,7 @@ for p in [2, 3, 10, 50]:
     Q, _ = torch.linalg.qr(torch.randn(n, p))
 
     X = Q.clone().detach().requires_grad_(True)
-    optimizer_SVD = SVDRiemannianGDSt([X], lr, momentum)
+    optimizer_SVD = SVDRiemannianGDSt([X], lr_SVD, momentum=momentum)
 
     for it in range(max_iter):
         optimizer_SVD.zero_grad()
@@ -91,11 +97,11 @@ for p in [2, 3, 10, 50]:
         rel_errors["SVD"].append(rel_error)
         grad_norms["SVD"].append(grad_norm)
 
-        if grad_norm < 1e-14:
+        if grad_norm < tol:
             break
 
     X = Q.clone().detach().requires_grad_(True)
-    optimizer_QR = QRRiemannianGDSt([X], lr, momentum)
+    optimizer_QR = QRRiemannianGDSt([X], lr_QR, momentum=momentum)
 
     for it in range(max_iter):
         optimizer_QR.zero_grad()
@@ -110,11 +116,11 @@ for p in [2, 3, 10, 50]:
         rel_errors["QR"].append(rel_error)
         grad_norms["QR"].append(grad_norm)
 
-        if grad_norm < 1e-14:
+        if grad_norm < tol:
             break
 
     X = Q.clone().detach().requires_grad_(True)
-    optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum)
+    optimizer_Polar = PolarRiemannianGDSt([X], lr_Polar, momentum=momentum)
 
     for it in range(max_iter):
         optimizer_Polar.zero_grad()
@@ -129,7 +135,7 @@ for p in [2, 3, 10, 50]:
         rel_errors["Polar"].append(rel_error)
         grad_norms["Polar"].append(grad_norm)
 
-        if grad_norm < 1e-14:
+        if grad_norm < tol:
             break
 
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(width_in, height_in))
