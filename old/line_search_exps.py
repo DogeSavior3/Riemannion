@@ -70,14 +70,14 @@ momentum = 0.9
 tol = 1e-9
 # exps:
 
-for p in [2, 3, 10, 50]:
+for p in [10]:
     rel_errors = []
     grad_norms = []
     true_val = torch.mean(eigvals[:p])
 
     Q, _ = torch.linalg.qr(torch.randn(n, p))
     X = Q.clone().detach().requires_grad_(True)
-    optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="CANS", steps=5)
+    optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, muon=True)
 
     for it in range(max_iter):
         optimizer_Polar.zero_grad()
@@ -102,7 +102,7 @@ for p in [2, 3, 10, 50]:
     axes[0].set_xlabel('Iteration')
     axes[0].set_ylabel(r'$\frac{|\lambda - \lambda^*|}{|\lambda^*|}$')
     axes[0].set_title('Relative error')
-    axes[1].plot(grad_norms, label = 'CANS Retraction')
+    axes[1].plot(grad_norms, label = 'Polar Retraction Muon')
     axes[1].grid()
     axes[1].set_yscale('log')
     axes[1].set_xlabel('Iteration')

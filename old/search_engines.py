@@ -6,7 +6,7 @@ device = "cpu"
 def Rayleigh(A, X):
 	return 1/X.shape[1] * torch.trace(X.T @ (A @ X))
 
-n=100
+n=800
 K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
 
 def Rayleigh_armijo(X):

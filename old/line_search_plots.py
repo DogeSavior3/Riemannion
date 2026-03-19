@@ -1,7 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 from optimizers import SVDRiemannianGDSt, QRRiemannianGDSt, PolarRiemannianGDSt
-from search_engines import Rayleigh
+from old.search_engines import Rayleigh
 import time
 
 torch.manual_seed(42)
@@ -43,7 +43,7 @@ plt.rcParams["lines.markeredgewidth"] = 1.0    # Marker edge thickness
 
 # 6. SAVING PARAMETERS (Call this when saving)
 save_kwargs = {
-    "format": "eps",
+    "format": "pdf",
     "dpi": 300,
     "bbox_inches": "tight",  # Crops whitespace
     "transparent": True  # If you need transparency
@@ -52,14 +52,14 @@ save_kwargs = {
 # Consts
 max_iter = 40000
 momentum = 0.9
-n = 100
+n = 800
 K_n = torch.eye(n, n) * 2.0 + torch.diag(torch.ones(n-1) * -1.0, 1) + torch.diag(torch.ones(n-1) * -1.0, -1)
 
 k = torch.arange(1, n + 1)
 eigvals = 2 - 2 * torch.cos(torch.pi * k / (n + 1))
 tol = 1e-8
 
-p = 10
+p = 100
 true_val = torch.mean(eigvals[:p])
 Q, _ = torch.linalg.qr(torch.randn(n, p))
 
@@ -182,7 +182,7 @@ axes[1, 1].set_title('Grad norm')
 axes[1, 1].legend()
 
 X = Q.clone().detach().requires_grad_(True)
-optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="newton-shultz", steps=2)
+optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="newton-shultz", steps=1)
 rel_errors = []
 grad_norms = []
 start_time = time.time()
@@ -256,7 +256,7 @@ axes[2, 1].set_title('Grad norm')
 axes[2, 1].legend()
 
 X = Q.clone().detach().requires_grad_(True)
-optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="CANS", steps=5)
+optimizer_Polar = PolarRiemannianGDSt([X], lr, momentum=momentum, line_search="CANS", steps=6)
 rel_errors = []
 grad_norms = []
 start_time = time.time()
@@ -292,5 +292,6 @@ axes[2, 3].set_ylabel(r'$\|G\|_F$')
 axes[2, 3].set_title('Grad norm')
 axes[2, 3].legend()
 
+plt.savefig("n=800_p=100.pdf")
 plt.tight_layout()
 plt.show()

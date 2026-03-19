@@ -1,13 +1,13 @@
 import torch
 from torch.optim import Optimizer
-from search_engines import polar_retraction, armijo_line_search, steppest, newton_schulz_polar, Rayleigh, Rayleigh_steppest, Rayleigh_armijo
+from old.search_engines import polar_retraction, armijo_line_search, steppest, newton_schulz_polar, Rayleigh, Rayleigh_steppest, Rayleigh_armijo
 from polar_express import optimal_composition, PolarExpress
 from cans_realization import cans_retraction
 
 class SVDRiemannianGDSt(Optimizer):
 
-    def __init__(self, params, lr=1e-2, momentum=None):
-        defaults = dict(lr=lr, momentum=momentum)
+    def __init__(self, params, lr=1e-2, momentum=None, muon = False):
+        defaults = dict(lr=lr, momentum=momentum, muon=muon)
         super().__init__(params, defaults)
         self.last_grad_norm = 0.0
 
@@ -20,6 +20,7 @@ class SVDRiemannianGDSt(Optimizer):
         for group in self.param_groups:
             lr = group['lr']
             momentum = group['momentum']
+            muon = group['muon']
             for p in group['params']:
                 if p.grad is None:
                     continue
@@ -98,8 +99,8 @@ class QRRiemannianGDSt(Optimizer):
 
 class PolarRiemannianGDSt(Optimizer):
 
-    def __init__(self, params, lr=1e-2, momentum=None, line_search="none", object=None, steps = 8):
-        defaults = dict(lr=lr, momentum=momentum, line_search=line_search, steps=steps)
+    def __init__(self, params, lr=1e-2, momentum=None, line_search="none", object=None, steps = 8, muon=False):
+        defaults = dict(lr=lr, momentum=momentum, line_search=line_search, steps=steps, muon=muon)
         super().__init__(params, defaults)
         self.last_grad_norm = 0.0
         self.func = object
@@ -117,6 +118,7 @@ class PolarRiemannianGDSt(Optimizer):
             momentum = group['momentum']
             line_search = group['line_search']
             steps = group['steps']
+            muon = group['muon']
             for p in group['params']:
                 if p.grad is None:
                     continue
@@ -134,10 +136,10 @@ class PolarRiemannianGDSt(Optimizer):
                     h_new = h - X @ (X.T @ h + h.T @ X) * 0.5
                     h = momentum * h_new + H
                     self.state[p]['momentum_buffer'] = h
-                    TxSTgrad = - h
+                    TxSTgrad = -h
                     self.last_grad_norm = torch.norm(h, 'fro').item()
                 else:
-                    TxSTgrad = - H
+                    TxSTgrad = -H
                     self.last_grad_norm = torch.norm(H, 'fro').item()
 
                 if line_search == "armijo":
