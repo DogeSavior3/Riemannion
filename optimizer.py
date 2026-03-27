@@ -1,24 +1,28 @@
 import torch
+from math import sqrt
 from torch.optim import Optimizer
 from step_algorithm import fixed_step_rule
-
+from transport import projection_transport
 
 def stiefel_tangent_projection(X, G):
     return G - X @ ((X.T @ G + G.T @ X) * 0.5)
 
-
-def projection_transport(X, X_old, M):
-    return M - X @ ((X.T @ M + M.T @ X) * 0.5)
-
-
 def svd_muon_v1(X, M):
     U, S, VT = torch.linalg.svd(M, full_matrices=False)
     # scale = S.sum()
-    # scale = torch.norm(S, 'fro')
-    scale = S[0]
+    scale = torch.norm(S, 'fro')
+    # scale = S[0]
+    # scale = sqrt(X.shape[0])
+    # scale = 1
     M_muon = (U @ VT) * scale
     return stiefel_tangent_projection(X, M_muon)
 
+def svd_muon_v2(X, M, eps=1e-12):
+    U, _, VT = torch.linalg.svd(M, full_matrices=False)
+    D = U @ VT
+    D = stiefel_tangent_projection(X, D)
+    D = D / (torch.linalg.matrix_norm(D, ord=2) + eps)
+    return 0.1 * D
 
 class RiemannianOptimizerSt(Optimizer):
     def __init__(
@@ -86,21 +90,16 @@ class RiemannianOptimizerSt(Optimizer):
                         cum_grad = self.vector_transport(X, X, cum_grad)
                     cum_grad = momentum * cum_grad + H
 
-                    if muon:
-                        if not self.temp_flag or self.iteration >= 400:
-                            # M_before = cum_grad.clone()
-                            M_after = self.muon_method(X, cum_grad)
-                            # if self.iteration == 1000:
-                            #     print(f"[MUON DEBUG] iteration = {self.iteration}")
-                            #     print(f"||H||_F       = {torch.norm(H, p='fro').item():.6e}")
-                            #     print(f"||H||_2       = {torch.linalg.norm(H, p='2').item():.6e}")
-                            #     print(f"||M_before||_F= {torch.norm(M_before, p='fro').item():.6e}")
-                            #     print(f"||M_after||_F = {torch.norm(M_after, p='fro').item():.6e}")
-
-                            cum_grad = M_after
+                    # if muon:
+                        # if not self.temp_flag or self.iteration >= 400:
+                        #     cum_grad = self.muon_method(X, cum_grad)
+                        # cum_grad = self.muon_method(X, cum_grad)
 
                     state["momentum_buffer"] = cum_grad
-                    TxSTGrad = cum_grad
+                    if muon:
+                        TxSTGrad = self.muon_method(X, cum_grad)
+                    else:
+                        TxSTGrad = cum_grad
                 else:
                     TxSTGrad = H
 
