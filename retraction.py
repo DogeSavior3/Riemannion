@@ -12,9 +12,23 @@ def svd_retraction(X, Xi):
     U, _, VT = torch.linalg.svd(X_new, full_matrices=False)
     return U @ VT
 
+# def qr_retraction(X, Xi):
+#     X_new = X + Xi
+#     Q, _ = torch.linalg.qr(X_new)
+#     return Q
+
 def qr_retraction(X, Xi):
-    X_new = X + Xi
-    Q, _ = torch.linalg.qr(X_new)
+    should_transpose = X.size(-2) < X.size(-1)
+    if should_transpose:
+        X = X.mT
+        Xi = Xi.mT
+
+    Y = X + Xi
+    Q, _ = torch.linalg.qr(Y)
+
+    if should_transpose:
+        Q = Q.mT
+
     return Q
 
 def polar_retraction(X, Xi):
