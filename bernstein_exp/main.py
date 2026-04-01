@@ -291,6 +291,7 @@ def plot_results(results_list):
 
     plt.tight_layout()
     plt.savefig("exp_nn.eps", **save_kwargs)
+    plt.savefig("exp_nn.png", dpi=200, bbox_inches="tight")
     plt.show()
 
 
