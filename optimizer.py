@@ -8,22 +8,22 @@ def stiefel_tangent_projection(X, G):
     return G - X @ ((X.T @ G + G.T @ X) * 0.5)
 
 def svd_muon_v1(X, M):
+    should_transpose = X.size(-2) < X.size(-1)
+    if should_transpose:
+        X = X.mT
+        M = M.mT
     U, S, VT = torch.linalg.svd(M, full_matrices=False)
     # scale = S.sum()
-    scale = torch.norm(S, 'fro')
+    # scale = torch.norm(S, 'fro')
     # scale = S[0]
     # scale = sqrt(X.shape[0])
-    # scale = 1
+    scale = 1
     M_muon = (U @ VT) * scale
-    return stiefel_tangent_projection(X, M_muon)
+    M_muon = stiefel_tangent_projection(X, M_muon)
 
-def svd_muon_v2(X, M, eps=1e-12):
-    U, _, VT = torch.linalg.svd(M, full_matrices=False)
-    D = U @ VT
-    D = stiefel_tangent_projection(X, D)
-    D = D / (torch.linalg.matrix_norm(D, ord=2) + eps)
-    return 0.1 * D
-
+    if should_transpose:
+        M_muon = M_muon.mT
+    return M_muon
 class RiemannianOptimizerSt(Optimizer):
     def __init__(
         self, params, lr=1e-2,
@@ -90,11 +90,6 @@ class RiemannianOptimizerSt(Optimizer):
                         cum_grad = self.vector_transport(X, X, cum_grad)
                     cum_grad = momentum * cum_grad + H
 
-                    # if muon:
-                        # if not self.temp_flag or self.iteration >= 400:
-                        #     cum_grad = self.muon_method(X, cum_grad)
-                        # cum_grad = self.muon_method(X, cum_grad)
-
                     state["momentum_buffer"] = cum_grad
                     if muon:
                         TxSTGrad = self.muon_method(X, cum_grad)
@@ -103,10 +98,11 @@ class RiemannianOptimizerSt(Optimizer):
                 else:
                     TxSTGrad = H
 
-                self.last_grad_norm = torch.norm(TxSTGrad, p="fro").item()
+                self.last_grad_norm = torch.norm(H, p="fro").item()
 
                 Xi = self.step_rule(
-                    X=X, H=TxSTGrad, lr=lr,
+                    X=X, grad=H, 
+                    H=TxSTGrad, lr=lr,
                     objective=self.objective,
                     retraction=self.retraction
                 )
