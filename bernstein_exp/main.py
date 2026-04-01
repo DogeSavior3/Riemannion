@@ -311,20 +311,20 @@ results_all.append({
     "elapsed": elapsed,
 })
 
-# print("Training with: manifold_muon")
-# model, epoch_losses, test_accs, train_accs, elapsed = train(
-#     epochs=3,
-#     initial_lr=0.1,
-#     update=manifold_muon,
-#     wd=0.0
-# )
-# results_all.append({
-#     "method": "manifold_muon",
-#     "epoch_losses": epoch_losses,
-#     "test_accs": test_accs,
-#     "train_accs": train_accs,
-#     "elapsed": elapsed,
-# })
+print("Training with: manifold_muon")
+model, epoch_losses, test_accs, train_accs, elapsed = train(
+    epochs=3,
+    initial_lr=0.1,
+    update=manifold_muon,
+    wd=0.0
+)
+results_all.append({
+    "method": "manifold_muon",
+    "epoch_losses": epoch_losses,
+    "test_accs": test_accs,
+    "train_accs": train_accs,
+    "elapsed": elapsed,
+})
 
 print("Training with: riemannian_muon")
 model, epoch_losses, test_accs, train_accs, elapsed = train_riemannian_muon(
