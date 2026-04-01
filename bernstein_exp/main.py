@@ -330,8 +330,8 @@ results_all.append({
 print("Training with: riemannian_muon")
 model, epoch_losses, test_accs, train_accs, elapsed = train_riemannian_muon(
     epochs=3,
-    initial_lr=1e-1,
-    momentum=0.8,
+    initial_lr= 0.08351431410962708,
+    momentum=0.1,
 )
 results_all.append({
     "method": "riemannian_muon",
