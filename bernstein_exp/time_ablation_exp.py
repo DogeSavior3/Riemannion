@@ -386,7 +386,7 @@ for name, retraction in retractions_to_test:
         epochs=6,
         initial_lr=0.08351431410962708,
         momentum=0.1,
-        smooth_window=7,
+        smooth_window=5,
         retraction=retraction,
     )
 
