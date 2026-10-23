@@ -1,0 +1,16 @@
+_target_: src.optimizer.riemannion.Riemannion
+params: ???
+retraction: ${retractions}
+vector_transport: ${transport}
+step_rule: ${step_rules}
+lr: 0.01
+momentum: null
+objective: null
+muon: false
+temp_flag: false
+tangent_projection:
+  _target_: src.optimizer.riemannion.stiefel_tangent_projection
+  _partial_: true
+muon_method:
+  _target_: src.optimizer.riemannion.svd_muon_direction
+  _partial_: true
