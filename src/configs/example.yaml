@@ -1,4 +1,3 @@
-# Compose empty configuration groups; no experiment is launched.
 defaults:
   - optimizer: example
   - retractions: example

@@ -1,0 +1,21 @@
+[project]
+name = "Riemannion"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "hydra-core",
+    "matplotlib",
+    "numpy",
+    "optuna",
+    "torch",
+    "torchvision",
+    "tqdm",
+]
+
+[dependency-groups]
+dev = [
+    "ruff",
+]
+notebooks = [
+    "ipykernel",
+]
