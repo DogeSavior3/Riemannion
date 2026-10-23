@@ -1,0 +1,5 @@
+_target_: src.step_rules.armijo.armijo_step_rule
+_partial_: true
+c: 0.0001
+tau: 0.5
+max_iter: 50
