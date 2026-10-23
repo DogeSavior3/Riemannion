@@ -3,4 +3,7 @@ defaults:
   - retractions@comparison.qr: qr
   - retractions@comparison.svd: svd
   - retractions@comparison.polar: polar
+  - retractions@comparison.cans: cans
+  - retractions@comparison.polar_express: polar_express
+  - retractions@comparison.newton_schulz: newton_schulz
   - _self_

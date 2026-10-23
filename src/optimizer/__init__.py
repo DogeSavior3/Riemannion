@@ -1,1 +1,1 @@
-from src.optimizer.riemannion import Riemannion
+from src.optimizer.riemannion import Riemannion as Riemannion

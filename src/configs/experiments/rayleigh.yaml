@@ -1,5 +1,5 @@
-n: 200
-p_list: [20]
+n: 600
+p_list: [20, 100, 200]
 max_iter: 15000
 tol: 1.0e-9
 seed: 42

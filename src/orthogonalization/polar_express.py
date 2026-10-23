@@ -1,6 +1,5 @@
 from itertools import repeat
 from math import inf, sqrt
-from typing import List
 
 import numpy as np
 import torch
@@ -61,7 +60,7 @@ def optimal_composition(l, num_iters, safety_factor_eps=0, cushion=0):
 
 
 @torch.compile
-def PolarExpress(G: torch.Tensor, steps: int, coeffs_list: List) -> torch.Tensor:
+def PolarExpress(G: torch.Tensor, steps: int, coeffs_list: list) -> torch.Tensor:
     assert G.ndim >= 2
     X = G.bfloat16()
     if G.size(-2) > G.size(-1):

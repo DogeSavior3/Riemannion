@@ -2,7 +2,7 @@ defaults:
   - optimizer: riemannion
   - retractions: qr
   - transport: projection
-  - step_rules: fixed
+  - step_rules: rayleigh_steepest
   - objectives: rayleigh
   - experiments: rayleigh
   - plotting: default

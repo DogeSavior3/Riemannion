@@ -1,4 +1,4 @@
-from src.orthogonalization.polar_express import optimal_composition, PolarExpress
+from src.orthogonalization.polar_express import PolarExpress, optimal_composition
 
 
 def make_polar_express_retraction(steps=8, l=0.001, safety_factor_eps=0.01):

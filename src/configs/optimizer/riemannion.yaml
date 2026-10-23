@@ -6,7 +6,7 @@ step_rule: ${step_rules}
 lr: 0.01
 momentum: null
 objective: null
-muon: false
+muon: true
 temp_flag: false
 tangent_projection:
   _target_: src.optimizer.riemannion.stiefel_tangent_projection

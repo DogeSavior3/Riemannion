@@ -65,7 +65,7 @@ def kovarik_formula(degree):
             a *= j / 2
         a /= i**2
         sign = 1
-        for k in range(0, i + 1):
+        for k in range(i + 1):
             p[2 * k + 1] += a * sign * c_n_k(i, k)
             sign *= -1
     return np.poly1d(p[::-1])
