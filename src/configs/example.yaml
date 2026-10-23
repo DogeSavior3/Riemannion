@@ -1,0 +1,12 @@
+# Compose empty configuration groups; no experiment is launched.
+defaults:
+  - optimizer: example
+  - retractions: example
+  - transport: example
+  - step_rules: example
+  - orthogonalization: example
+  - objectives: example
+  - experiments: example
+  - models: example
+  - datasets: example
+  - _self_
