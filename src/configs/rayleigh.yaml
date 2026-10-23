@@ -1,0 +1,14 @@
+defaults:
+  - optimizer: riemannion
+  - retractions: qr
+  - transport: projection
+  - step_rules: fixed
+  - objectives: rayleigh
+  - experiments: rayleigh
+  - plotting: default
+  - output@_global_: default
+  - _self_
+
+optimizer:
+  lr: 0.7
+  momentum: 0.9

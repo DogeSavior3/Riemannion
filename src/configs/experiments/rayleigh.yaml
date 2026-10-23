@@ -1,0 +1,10 @@
+n: 200
+p_list: [20]
+max_iter: 15000
+tol: 1.0e-9
+seed: 42
+dtype: float64
+label: Rayleigh
+show: true
+save: false
+output_dir: output/rayleigh_graphs

@@ -1,11 +1,13 @@
 defaults:
-  - optimizer: example
-  - retractions: example
-  - transport: example
-  - step_rules: example
+  - optimizer: riemannion
+  - retractions: svd
+  - transport: projection
+  - step_rules: fixed
   - orthogonalization: example
   - objectives: example
   - experiments: example
   - models: example
   - datasets: example
+  - plotting: default
+  - output@_global_: default
   - _self_

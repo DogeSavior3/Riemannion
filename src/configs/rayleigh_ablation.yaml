@@ -1,0 +1,6 @@
+defaults:
+  - rayleigh
+  - retractions@comparison.qr: qr
+  - retractions@comparison.svd: svd
+  - retractions@comparison.polar: polar
+  - _self_
