@@ -1,0 +1,5 @@
+_target_: src.optimizer.manifold_muon.manifold_muon
+_partial_: true
+alpha: 0.01
+steps: 100
+tol: 1.0e-6
