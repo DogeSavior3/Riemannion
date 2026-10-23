@@ -1,0 +1,24 @@
+style:
+  savefig.format: eps
+  ps.useafm: true
+  pdf.use14corefonts: true
+  ps.fonttype: 42
+  pdf.fonttype: 42
+  figure.figsize: [6, 3.12]
+  text.usetex: true
+  font.family: serif
+  lines.linewidth: 1.2
+  lines.markersize: 6
+  font.size: 10
+  axes.labelsize: 10
+  xtick.labelsize: 9
+  ytick.labelsize: 9
+  legend.fontsize: 8
+  axes.titlesize: 10
+  lines.markeredgewidth: 1.0
+
+save_kwargs:
+  format: pdf
+  dpi: 300
+  bbox_inches: tight
+  transparent: true
