@@ -8,7 +8,7 @@ def stiefel_tangent_projection(X, G):
 
 def svd_muon_direction(X, M):
 
-    U, S, VT = torch.linalg.svd(M, full_matrices=False)
+    U, _, VT = torch.linalg.svd(M, full_matrices=False)
     scale = 1
     M_muon = (U @ VT) * scale
     M_muon = stiefel_tangent_projection(X, M_muon)
@@ -33,11 +33,11 @@ class Riemannion(Optimizer):
         temp_flag=False,
     ):
 
-        defaults = dict(
-            lr=lr,
-            momentum=momentum,
-            muon=muon,
-        )
+        defaults = {
+            "lr": lr,
+            "momentum": momentum,
+            "muon": muon,
+        }
         super().__init__(params, defaults)
 
         self.retraction = retraction
@@ -71,6 +71,14 @@ class Riemannion(Optimizer):
 
                 X = p.data
                 G = p.grad.data
+                should_transpose = X.shape[0] < X.shape[1]
+                objective = self.objective
+                if should_transpose:
+                    X = X.T
+                    G = G.T
+                    if objective is not None:
+                        def objective(Z):
+                            return self.objective(Z.T)
 
                 H = self.tangent_projection(X, G)
 
@@ -99,11 +107,11 @@ class Riemannion(Optimizer):
                     grad=H,
                     H=TxSTGrad,
                     lr=lr,
-                    objective=self.objective,
+                    objective=objective,
                     retraction=self.retraction,
                 )
 
                 X_new = self.retraction(X, Xi)
-                p.data.copy_(X_new)
+                p.data.copy_(X_new.T if should_transpose else X_new)
 
         return loss

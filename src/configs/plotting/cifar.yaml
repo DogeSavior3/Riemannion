@@ -1,0 +1,13 @@
+defaults:
+  - default
+  - _self_
+
+style:
+  figure.figsize: [6, 3]
+  legend.handlelength: 1.5
+  legend.handletextpad: 0.4
+  legend.borderaxespad: 0.2
+  axes.titlepad: 4
+
+save_kwargs:
+  format: eps

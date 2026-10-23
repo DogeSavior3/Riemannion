@@ -1,0 +1,9 @@
+epochs: 3
+batch_size: 1024
+seed: 42
+device: auto
+data_dir: data
+methods: [manifold_muon, riemannion]
+show: true
+save: false
+output_dir: output/cifar_graphs

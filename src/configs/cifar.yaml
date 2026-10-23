@@ -1,0 +1,33 @@
+defaults:
+  - optimizer: riemannion
+  - optimizer@comparison.manifold_muon.update: manifold_muon
+  - retractions: svd
+  - transport: projection
+  - step_rules: fixed
+  - experiments: cifar
+  - plotting: cifar
+  - output@_global_: default
+  - _self_
+
+optimizer:
+  lr: 0.08351431410962708
+  momentum: 0.1
+  muon: true
+
+comparison:
+  manifold_muon:
+    lr: 0.1
+  riemannion:
+    lr: ${optimizer.lr}
+    stiefel_init: true
+    update: null
+    optimizer: ${optimizer}
+  adamw:
+    lr: 0.0003
+    stiefel_init: false
+    update: null
+    optimizer:
+      _target_: torch.optim.AdamW
+      params: ???
+      lr: ${comparison.adamw.lr}
+      weight_decay: 0.0
