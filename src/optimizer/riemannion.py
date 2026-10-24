@@ -30,7 +30,6 @@ class Riemannion(Optimizer):
         objective=None,
         muon=False,
         muon_method=svd_muon_direction,
-        temp_flag=False,
     ):
 
         defaults = {
@@ -49,7 +48,6 @@ class Riemannion(Optimizer):
         self.last_grad_norm = 0.0
 
         self.iteration = 0
-        self.temp_flag = temp_flag
 
     def step(self, closure=None):
         loss = None
