@@ -6,8 +6,6 @@ defaults:
   - orthogonalization: example
   - objectives: example
   - experiments: example
-  - models: example
-  - datasets: example
   - plotting: default
   - output@_global_: default
   - _self_
